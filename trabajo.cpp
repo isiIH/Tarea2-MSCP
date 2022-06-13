@@ -5,9 +5,11 @@ using namespace std;
 
 vector<vector<int>> busquedaExhaustiva(vector<int> &X, vector<vector<int>> F);
 vector<vector<int>> beOptimizada(vector<int> &X, vector<vector<int>> F);
+vector<vector<int>> greedyMSCP(vector<int> &X, vector<vector<int>> F);
 
 vector<int> unionConjuntos(vector<vector<int>> &F);
 vector<int> diferenciaConjuntos(vector<int> A, vector<int> B);
+vector<int> interseccionConjuntos(vector<int> A, vector<int> B);
 
 void imprimirConjunto(vector<int> &v);
 
@@ -29,15 +31,25 @@ int main(int argc, char **argv){
 	
 	// vector<vector<int>> F = {S1,S2,S3,S4,S5};
 
+	//------Ejemplo 2---------
 	//Conjuntos
-	vector<int> S1 = {1,2,3,4,5,6};
-	vector<int> S2 = {1,4,7,10};
-	vector<int> S3 = {2,5,7,8,11};
-	vector<int> S4 = {10,11};
-	vector<int> S5 = {3,6,9,12};
-	vector<int> S6 = {5,6,8,9};
+	// vector<int> S1 = {1,2,3,4,5,6};
+	// vector<int> S2 = {1,4,7,10};
+	// vector<int> S3 = {2,5,7,8,11};
+	// vector<int> S4 = {10,11};
+	// vector<int> S5 = {3,6,9,12};
+	// vector<int> S6 = {5,6,8,9};
 
-	//Familia de conjuntos
+	// //Familia de conjuntos
+	// vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
+
+	vector<int> S1 = {1,2,3,4,5,6};
+	vector<int> S2 = {5,6,8,9};
+	vector<int> S3 = {10,11,12};
+	vector<int> S4 = {1,4,7,10};
+	vector<int> S5 = {2,5,8,11};
+	vector<int> S6 = {3,6,9,12};
+
 	vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
 
 	//Universo
@@ -45,7 +57,8 @@ int main(int argc, char **argv){
 	sort(X.begin(), X.end());
 
 	//SC
-	vector<vector<int>> C = beOptimizada(X, F);
+	// vector<vector<int>> C = beOptimizada(X, F);
+	vector<vector<int>> C = greedyMSCP(X,F);
 
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
 	for(vector<int> S : C) {
@@ -59,7 +72,7 @@ int main(int argc, char **argv){
 /* --------------- Solución 1 -------------- */
 vector<vector<int>> busquedaExhaustiva(vector<int> &X, vector<vector<int>> F) {
 
-	//Falta hacer esto xd
+	
 	return F;
 
 }
@@ -113,6 +126,40 @@ vector<vector<int>> beOptimizada(vector<int> &X, vector<vector<int>> F) {
 	return C;
 }
 
+/* --------------- Solución 3 -------------- */
+vector<vector<int>> greedyMSCP(vector<int> &X, vector<vector<int>> F) {
+	vector<int> U = X;
+	vector<vector<int>> C = {};
+	vector<int> maxS;
+	vector<int> interseccionMax;
+	vector<int> Sconjunto;
+
+	while(!U.empty()) {
+		maxS = {};
+		interseccionMax = {};
+		for(vector<int> S : F) {
+			Sconjunto = interseccionConjuntos(U,S);
+			// cout << "Interseccion: " << endl;
+			// imprimirConjunto(Sconjunto);
+			if(Sconjunto.size() > interseccionMax.size()) {
+				interseccionMax = Sconjunto;
+				maxS = S;
+			}
+		}
+
+		// cout << "maxS: " << endl;
+		// imprimirConjunto(maxS);
+		U = diferenciaConjuntos(U,maxS);
+		// cout << "U sin maxS: " << endl;
+		// imprimirConjunto(U);
+		C.push_back(maxS);
+	}
+
+	return C;
+
+}
+
+/* --------------- Operaciones de conjuntos -------------- */
 vector<int> unionConjuntos(vector<vector<int>> &F) {
 	vector<int> X = {};
 	if(F.empty()) return X;
@@ -147,6 +194,18 @@ vector<int> diferenciaConjuntos(vector<int> A, vector<int> B) {
 
 		if (!encontrado) {
 			C.push_back(a);
+		}
+	}
+
+	return C;
+}
+
+vector<int> interseccionConjuntos(vector<int> A, vector<int> B) {
+	vector<int> C = {};
+
+	for(int a : A) {
+		for(int b : B) {
+			if(a == b) C.push_back(a);
 		}
 	}
 
