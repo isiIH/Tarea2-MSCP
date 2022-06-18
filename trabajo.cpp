@@ -6,7 +6,7 @@ using namespace std;
 vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F);
-vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F);
+vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k);
 vector<vector<int>> conjuntosConElementoUnico(vector<int> &X, vector<vector<int>> &F);
 
 vector<int> unionConjuntos(vector<vector<int>> F);
@@ -24,7 +24,7 @@ int main(int argc, char **argv){
 		exit(EXIT_FAILURE);
 	}
 
-	//------Ejemplo 1---------
+	//------Ejemplo 1--------- SOL = {S1, S2, S5}
 	// vector<int> S1 = {1,2,3};
 	// vector<int> S2 = {5,6,4};
 	// vector<int> S3 = {2,4,3,5};
@@ -35,34 +35,35 @@ int main(int argc, char **argv){
 
 	//------Ejemplo 2---------
 	// Conjuntos
-	vector<int> S1 = {1,2,3,4,5,6};
-	vector<int> S2 = {1,4,7,10};
-	vector<int> S3 = {2,5,7,8,11};
-	vector<int> S4 = {10,11};
-	vector<int> S5 = {3,6,9,12};
-	vector<int> S6 = {5,6,8,9};
+	// vector<int> S1 = {1,2,3,4,5,6};
+	// vector<int> S2 = {1,4,7,10};
+	// vector<int> S3 = {2,5,7,8,11};
+	// vector<int> S4 = {10,11};
+	// vector<int> S5 = {3,6,9,12};
+	// vector<int> S6 = {5,6,8,9};
 
-	//Familia de conjuntos
-	vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
+	// //Familia de conjuntos
+	// vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
 
 	//------Ejemplo 3---------
-	// vector<int> S1 = {1,2,3,4,5,6};
-	// vector<int> S2 = {5,6,8,9};
-	// vector<int> S3 = {10,11,12};
-	// vector<int> S4 = {1,4,7,10};
-	// vector<int> S5 = {2,5,8,11};
-	// vector<int> S6 = {3,6,9,12};
+	vector<int> S1 = {1,2,3,4,5,6};
+	vector<int> S2 = {5,6,8,9};
+	vector<int> S3 = {10,11,12};
+	vector<int> S4 = {1,4,7,10};
+	vector<int> S5 = {2,5,8,11};
+	vector<int> S6 = {3,6,9,12};
 
-	// vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
+	vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
 
 	//Universo
 	vector<int> X = unionConjuntos(F);
 	sort(X.begin(), X.end());
 
 	//SC
-	// vector<vector<int>> C = beOptimizada(X, F); // Solución 2
+	// vector<vector<int>> C = busquedaExhaustiva(X, F); // Solución 1
+	vector<vector<int>> C = beOptimizada(X, F); // Solución 2
 	// vector<vector<int>> C = greedyMSCP(X,F); // Solución 3
-	vector<vector<int>> C = greedyOptimizado(X, F); // Solución 4
+	// vector<vector<int>> C = greedyOptimizado(X, F, 1); // Solución 4
 
 
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
@@ -76,15 +77,49 @@ int main(int argc, char **argv){
 
 /* --------------- Solución 1 -------------- */
 vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F) {
+	if(F.size() == 1) return F;
 
-	
-	return F;
+	vector<vector<int>> Fcopy = {};
+	vector<vector<int>> minSubConj = F;
+	int n = X.size();
+	int m = F.size();
+	int sizeMin = m;
+
+	for(int i = 0; i<F.size(); i++) {
+		for(int j=0; j<F.size(); j++){
+			if(i!=j) Fcopy.push_back(F[j]);
+		}
+		
+		// for(int k=0; k<Fcopy.size(); k++) {
+		// 	imprimirConjunto(Fcopy[k]);
+		// }
+
+		// cout << "-----------------------------" << endl;
+
+		if(unionConjuntos(Fcopy).size() == X.size() && Fcopy.size() < sizeMin) {
+			minSubConj = Fcopy;
+			sizeMin = Fcopy.size();
+		}
+
+		Fcopy = busquedaExhaustiva(X,Fcopy);
+
+		if(unionConjuntos(Fcopy).size() == X.size() && Fcopy.size() < sizeMin) {
+			minSubConj = Fcopy;
+			sizeMin = Fcopy.size();
+		}	
+
+		Fcopy.clear();
+
+	}
+
+	return minSubConj;
 
 }
 
 /* --------------- Solución 2 -------------- */
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F) {
 	vector<vector<int>> C = conjuntosConElementoUnico(X,F);
+	vector<vector<int>> CFaltante;
 	vector<int> numEncontrados;
 
 	//Números encontrados
@@ -101,8 +136,10 @@ vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F) {
 		imprimirConjunto(S);
 
 	if(!X.empty()) {
-		busquedaExhaustiva(X, F);
-		//Falta terminarlo
+		CFaltante = busquedaExhaustiva(X, F);
+		for(vector<int> s : CFaltante) {
+			C.push_back(s);
+		}
 	}
 
 	return C;
@@ -142,7 +179,7 @@ vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F) {
 }
 
 /* --------------- Solución 4 -------------- */
-vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F) {
+vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k) {
 	vector<vector<int>> C = conjuntosConElementoUnico(X,F);
 	vector<int> numEncontrados;
 
@@ -167,6 +204,7 @@ vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F) {
 	//Algoritmo del greedy normal, hay que cambiarlo para cualquier k
 
 	vector<int> U = X;
+	vector<vector<int>> kconjuntos;
 	vector<int> maxS;
 	int interseccionMax;
 	int interseccion;
@@ -174,13 +212,15 @@ vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F) {
 	while(!U.empty()) {
 		maxS = {};
 		interseccionMax = 0;
-		for(vector<int> S : F) {
-			interseccion = interseccionConjuntos(U,S).size();
+		for(int i=0; i<=F.size()-k; i++) {
+			kconjuntos = {};
+
+			interseccion = interseccionConjuntos(U,F[i]).size();
 			// cout << "Interseccion: " << endl;
 			// imprimirConjunto(Sconjunto);
 			if(interseccion > interseccionMax) {
 				interseccionMax = interseccion;
-				maxS = S;
+				maxS = F[i];
 			}
 		}
 
