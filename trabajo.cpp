@@ -1,19 +1,29 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <set>
+
 using namespace std;
 
-vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F);
+using std::vector;
+
+vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F, vector<vector<int>> C);
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> conjuntosConElementoUnico(vector<int> &X, vector<vector<int>> &F);
 
+
 vector<int> unionConjuntos(vector<vector<int>> F);
 vector<int> diferenciaConjuntos(vector<int> A, vector<int> B);
 vector<int> interseccionConjuntos(vector<int> A, vector<int> B);
 
+vector<vector<int>> Eliminacion(vector<vector<int>> X, vector<int>Y);
+vector<vector<int>> insercion(vector<vector<int>> X, vector<int>Y);
+
 void imprimirConjunto(vector<int> &v);
+
+
 
 /*--------------------------------------------------------------------------------*/
 
@@ -25,25 +35,25 @@ int main(int argc, char **argv){
 	}
 
 	//------Ejemplo 1---------
-	// vector<int> S1 = {1,2,3};
-	// vector<int> S2 = {5,6,4};
-	// vector<int> S3 = {2,4,3,5};
-	// vector<int> S4 = {3,5,7};
-	// vector<int> S5 = {7,8};
+	vector<int> S1 = {1,2,3};
+	vector<int> S2 = {5,6,4};
+	vector<int> S3 = {2,4,3,5};
+	vector<int> S4 = {3,5,7};
+	vector<int> S5 = {7,8};
 	
-	// vector<vector<int>> F = {S1,S2,S3,S4,S5};
+	vector<vector<int>> F = {S1,S2,S3,S4,S5};
 
 	//------Ejemplo 2---------
 	// Conjuntos
-	vector<int> S1 = {1,2,3,4,5,6};
-	vector<int> S2 = {1,4,7,10};
-	vector<int> S3 = {2,5,7,8,11};
-	vector<int> S4 = {10,11};
-	vector<int> S5 = {3,6,9,12};
-	vector<int> S6 = {5,6,8,9};
+	// vector<int> S1 = {1,2,3,4,5,6};
+	// vector<int> S2 = {1,4,7,10};
+	// vector<int> S3 = {2,5,7,8,11};
+	// vector<int> S4 = {10,11};
+	// vector<int> S5 = {3,6,9,12};
+	// vector<int> S6 = {5,6,8,9};
 
-	//Familia de conjuntos
-	vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
+	// //Familia de conjuntos
+	// vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
 
 	//------Ejemplo 3---------
 	// vector<int> S1 = {1,2,3,4,5,6};
@@ -60,10 +70,19 @@ int main(int argc, char **argv){
 	sort(X.begin(), X.end());
 
 	//SC
+	 
+	// Solución 1
+	
+
+	vector<vector<int>> C = busquedaExhaustiva(X,F,C);
+
+
+
 	// vector<vector<int>> C = beOptimizada(X, F); // Solución 2
 	// vector<vector<int>> C = greedyMSCP(X,F); // Solución 3
-	vector<vector<int>> C = greedyOptimizado(X, F); // Solución 4
+	//vector<vector<int>> C = greedyOptimizado(X, F); // Solución 4
 
+	
 
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
 	for(vector<int> S : C) {
@@ -75,10 +94,34 @@ int main(int argc, char **argv){
 }
 
 /* --------------- Solución 1 -------------- */
-vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F) {
+vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F, vector<vector<int>> C) {
+	vector<vector<int>> temp0;
+	vector<int> K;
 
+	vector<vector<int>> R;
+	vector<vector<int>> t;
+	int min = F.size();
+
+	if(X == K)
+		return C;
 	
-	return F;
+
+	for(vector<int> S : F){
+		C = insercion(C,S);
+		temp0 =  {S,K};
+		K = unionConjuntos(temp0);
+		F = Eliminacion(F,S);
+		t = busquedaExhaustiva(X,F,C);
+		if(t.size() <= min){
+			min = t.size();
+			R = t;
+		}
+
+	}	
+
+		
+	
+	return R;
 
 }
 
@@ -101,7 +144,7 @@ vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F) {
 		imprimirConjunto(S);
 
 	if(!X.empty()) {
-		busquedaExhaustiva(X, F);
+		//busquedaExhaustiva(X, F);
 		//Falta terminarlo
 	}
 
@@ -135,6 +178,7 @@ vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F) {
 		// cout << "U sin maxS: " << endl;
 		// imprimirConjunto(U);
 		C.push_back(maxS);
+
 	}
 
 	return C;
@@ -160,7 +204,7 @@ vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F) {
 		imprimirConjunto(S);
 
 	if(!X.empty()) {
-		busquedaExhaustiva(X, F);
+		//busquedaExhaustiva(X, F);
 		//Falta terminarlo
 	}
 
@@ -194,6 +238,10 @@ vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F) {
 
 	return C;
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 vector<vector<int>> conjuntosConElementoUnico(vector<int> &X, vector<vector<int>> &F) {
 	vector<vector<int>> C = {};
@@ -250,7 +298,7 @@ vector<int> unionConjuntos(vector<vector<int>> F) {
 
 	return X;
 }
-
+/////////////////////////////////////////////////////////////////////////////
 vector<int> diferenciaConjuntos(vector<int> A, vector<int> B) {
 	vector<int> C = {};
 
@@ -270,7 +318,7 @@ vector<int> diferenciaConjuntos(vector<int> A, vector<int> B) {
 
 	return C;
 }
-
+/////////////////////////////////////////////////////////////////////////
 vector<int> interseccionConjuntos(vector<int> A, vector<int> B) {
 	vector<int> C = {};
 
@@ -282,7 +330,7 @@ vector<int> interseccionConjuntos(vector<int> A, vector<int> B) {
 
 	return C;
 }
-
+/////////////////////////////////////////////////////////////////////////
 void imprimirConjunto(vector<int> &v) {
 	cout << "{";
 	for(int num : v) {
@@ -290,4 +338,34 @@ void imprimirConjunto(vector<int> &v) {
 		else cout << num << ", ";
 	}
 	cout << "}" << endl;
+}
+
+
+vector<vector<int>> Eliminacion(vector<vector<int>> X, vector<int>Y){
+
+
+	vector<vector<int>> Temp;
+	for(vector<int> S : X){
+
+		//Temp.push_back(S);
+		if(S != Y)
+			Temp.push_back(S);
+	}
+	
+	return Temp;
+	
+}
+
+vector<vector<int>> insercion(vector<vector<int>> X, vector<int>Y){
+
+	vector<vector<int>> Temp;
+	for(vector<int> S : X){
+		Temp.push_back(S);
+	}
+	Temp.push_back(Y);
+
+	return Temp;
+
+
+
 }
