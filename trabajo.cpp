@@ -1,9 +1,17 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <ctime>
 using namespace std;
 
 vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F);
+
+vector<int> sumarUno(vector<int> lista);
+int contarUnos(vector<int> lista);
+vector<vector<int>> conjuntosUtilizados(vector<int> Faceptados, vector<vector<int>> F);
+
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k);
@@ -13,16 +21,43 @@ vector<int> unionConjuntos(vector<vector<int>> F);
 vector<int> diferenciaConjuntos(vector<int> A, vector<int> B);
 vector<int> interseccionConjuntos(vector<int> A, vector<int> B);
 
-void imprimirConjunto(vector<int> &v);
+void imprimirConjunto(vector<int> v);
 
 /*--------------------------------------------------------------------------------*/
 
 int main(int argc, char **argv){
     
-    if(argc != 1){
-		cout << "Error. Debe ejecutarse como ./trabajo" << endl;
+    if(argc != 2){
+		cout << "Error. Debe ejecutarse como ./trabajo archivo" << endl;
 		exit(EXIT_FAILURE);
 	}
+
+	string file = argv[1];
+	ifstream archivo;
+    archivo.open("data/" + file, ios::in);
+    string linea;
+	string palabra;
+	vector<int> numeros;
+	vector<vector<int>> F;
+
+    if(archivo.fail()){
+        cout << "Error" << endl;
+        exit(1);
+    }
+    while (getline(archivo, linea)) {
+		stringstream text_stream(linea);
+		string item;
+		while (getline(text_stream, item, ' ')) {
+			numeros.push_back(stoi(item));
+		}
+
+		// cout << numeros.size() << endl;
+		// imprimirConjunto(numeros);
+		F.push_back(numeros);
+		numeros.clear();
+    }
+    archivo.close();
+
 
 	//------Ejemplo 1--------- SOL = {S1, S2, S5}
 	// vector<int> S1 = {1,2,3};
@@ -33,8 +68,8 @@ int main(int argc, char **argv){
 	
 	// vector<vector<int>> F = {S1,S2,S3,S4,S5};
 
-	//------Ejemplo 2---------
-	// Conjuntos
+	//------Ejemplo 2--------- SOL = {S2,S3,S5}
+	// // Conjuntos
 	// vector<int> S1 = {1,2,3,4,5,6};
 	// vector<int> S2 = {1,4,7,10};
 	// vector<int> S3 = {2,5,7,8,11};
@@ -45,25 +80,34 @@ int main(int argc, char **argv){
 	// //Familia de conjuntos
 	// vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
 
-	//------Ejemplo 3---------
-	vector<int> S1 = {1,2,3,4,5,6};
-	vector<int> S2 = {5,6,8,9};
-	vector<int> S3 = {10,11,12};
-	vector<int> S4 = {1,4,7,10};
-	vector<int> S5 = {2,5,8,11};
-	vector<int> S6 = {3,6,9,12};
+	//------Ejemplo 3--------- SOL = {S6,S4,S5}
+	// vector<int> S1 = {1,2,3,4,5,6};
+	// vector<int> S2 = {5,6,8,9};
+	// vector<int> S3 = {10,11,12};
+	// vector<int> S4 = {1,4,7,10};
+	// vector<int> S5 = {2,5,8,11};
+	// vector<int> S6 = {3,6,9,12};
 
-	vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
+	// vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
+
+
 
 	//Universo
 	vector<int> X = unionConjuntos(F);
 	sort(X.begin(), X.end());
+	cout << "Universo: " << endl;
+	imprimirConjunto(X);
 
-	//SC
-	// vector<vector<int>> C = busquedaExhaustiva(X, F); // Solución 1
-	vector<vector<int>> C = beOptimizada(X, F); // Solución 2
+	vector<bool> sol;
+	for(int i=0; i<F.size(); i++) {
+		sol.push_back(false);
+	}
+
+	// //SC
+	vector<vector<int>> C = busquedaExhaustiva(X, F); // Solución 1
+	// // vector<vector<int>> C = beOptimizada(X, F); // Solución 2
 	// vector<vector<int>> C = greedyMSCP(X,F); // Solución 3
-	// vector<vector<int>> C = greedyOptimizado(X, F, 1); // Solución 4
+	// // vector<vector<int>> C = greedyOptimizado(X, F, 1); // Solución 4
 
 
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
@@ -77,43 +121,67 @@ int main(int argc, char **argv){
 
 /* --------------- Solución 1 -------------- */
 vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F) {
-	if(F.size() == 1) return F;
-
-	vector<vector<int>> Fcopy = {};
-	vector<vector<int>> minSubConj = F;
+	int c = 0;
 	int n = X.size();
-	int m = F.size();
-	int sizeMin = m;
+	int csol = F.size() + 99;
+	vector<int> Faceptados;
+	//Inicializar en 0
+	for(int i=0; i<F.size(); i++) {
+		Faceptados.push_back(0);
+	}
+	vector<vector<int>> sol;
+	vector<vector<int>> cUtilizados;
 
-	for(int i = 0; i<F.size(); i++) {
-		for(int j=0; j<F.size(); j++){
-			if(i!=j) Fcopy.push_back(F[j]);
+	while(c<F.size()) {
+		Faceptados = sumarUno(Faceptados);
+		c = contarUnos(Faceptados);
+		cUtilizados = conjuntosUtilizados(Faceptados, F);
+		if(Faceptados.size() < csol && interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n) {
+			sol = cUtilizados;
+			csol = c;
 		}
-		
-		// for(int k=0; k<Fcopy.size(); k++) {
-		// 	imprimirConjunto(Fcopy[k]);
-		// }
-
-		// cout << "-----------------------------" << endl;
-
-		if(unionConjuntos(Fcopy).size() == X.size() && Fcopy.size() < sizeMin) {
-			minSubConj = Fcopy;
-			sizeMin = Fcopy.size();
-		}
-
-		Fcopy = busquedaExhaustiva(X,Fcopy);
-
-		if(unionConjuntos(Fcopy).size() == X.size() && Fcopy.size() < sizeMin) {
-			minSubConj = Fcopy;
-			sizeMin = Fcopy.size();
-		}	
-
-		Fcopy.clear();
-
 	}
 
-	return minSubConj;
+	return sol;
+}
 
+vector<int> sumarUno(vector<int> lista) { //O(n)
+	int i = lista.size() - 1;
+
+	while(i >= 0 && lista[i] == 1) {
+		lista[i] = 0;
+		i -= 1;
+	}
+
+	if(i>=0) {
+		lista[i] = 1;
+	}
+
+	return lista;
+}
+
+int contarUnos(vector<int> lista) {
+	int c = 0;
+
+	for(int i : lista) {
+		if(i == 1) {
+			c++;
+		}
+	}
+	
+	return c;
+}
+
+vector<vector<int>> conjuntosUtilizados(vector<int> Faceptados, vector<vector<int>> F) { //O(n)
+	vector<vector<int>> res;
+
+	for(int i=0; i<Faceptados.size(); i++) {
+		if(Faceptados[i] == 1) {
+			res.push_back(F[i]);
+		}
+	}
+
+	return res;
 }
 
 /* --------------- Solución 2 -------------- */
@@ -136,8 +204,10 @@ vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F) {
 		imprimirConjunto(S);
 
 	if(!X.empty()) {
+		cout << "Se realizará busqueda exhaustiva..." << endl;
 		CFaltante = busquedaExhaustiva(X, F);
 		for(vector<int> s : CFaltante) {
+			imprimirConjunto(s);
 			C.push_back(s);
 		}
 	}
@@ -323,11 +393,11 @@ vector<int> interseccionConjuntos(vector<int> A, vector<int> B) {
 	return C;
 }
 
-void imprimirConjunto(vector<int> &v) {
+void imprimirConjunto(vector<int> v) {
+	int i;
 	cout << "{";
-	for(int num : v) {
-		if(num == v[v.size()-1]) cout << num;
-		else cout << num << ", ";
+	for(i=0; i<v.size()-1; i++) {
+		cout << v[i] << ", ";
 	}
-	cout << "}" << endl;
+	cout << v[v.size()-1] << "}" << endl;
 }
