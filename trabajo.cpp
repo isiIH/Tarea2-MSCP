@@ -29,16 +29,16 @@ void imprimirConjunto(vector<int> v);
 
 int main(int argc, char **argv){
     
-    if(argc != 2){
-		cout << "Error. Debe ejecutarse como ./trabajo archivo" << endl;
+    if(argc != 3){
+		cout << "Error. Debe ejecutarse como ./trabajo solucion archivo" << endl;
 		exit(EXIT_FAILURE);
 	}
 
-	string file = argv[1];
+	int solucion = stoi(argv[1]);
+	string file = argv[2];
 	ifstream archivo;
     archivo.open("data/" + file, ios::in);
     string linea;
-	string palabra;
 	vector<int> numeros;
 	vector<vector<int>> F;
 
@@ -107,12 +107,25 @@ int main(int argc, char **argv){
 		sol.push_back(false);
 	}
 
-	// //SC
-	// vector<vector<int>> C = busquedaExhaustiva(X, F); // Solución 1
-	vector<vector<int>> C = beOptimizada(X, F); // Solución 2
-	// vector<vector<int>> C = greedyMSCP(X,F); // Solución 3
-	// vector<vector<int>> C = greedyOptimizado(X, F, 1); // Solución 4
-
+	//SC
+	vector<vector<int>> C;
+	switch(solucion) {
+		case 1:
+			C = busquedaExhaustiva(X, F); // Solución 1
+			break;
+		case 2:
+			C = beOptimizada(X, F); // Solución 2
+			break;
+		case 3:
+			C = greedyMSCP(X,F); // Solución 3
+			break;
+		case 4:
+			C = greedyOptimizado(X, F, 1); // Solución 4
+			break;
+		default:
+			cout << "Los números de solución pueden ser: 1,2,3,4. Ejecute nuevamente" << endl;
+			exit(EXIT_FAILURE);
+	}
 
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
 	for(vector<int> S : C) {
