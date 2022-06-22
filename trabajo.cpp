@@ -6,6 +6,8 @@
 #include <ctime>
 using namespace std;
 
+vector<int> split (string s, string delimiter);
+
 vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F);
 
 vector<int> sumarUno(vector<int> lista);
@@ -45,11 +47,13 @@ int main(int argc, char **argv){
         exit(1);
     }
     while (getline(archivo, linea)) {
-		stringstream text_stream(linea);
-		string item;
-		while (getline(text_stream, item, ' ')) {
-			numeros.push_back(stoi(item));
-		}
+		// stringstream text_stream(linea);
+		// string item;
+		// while (getline(text_stream, item, ' ')) {
+		// 	numeros.push_back(stoi(item));
+		// }
+
+		numeros = split(linea, " ");
 
 		// cout << numeros.size() << endl;
 		// imprimirConjunto(numeros);
@@ -69,7 +73,7 @@ int main(int argc, char **argv){
 	// vector<vector<int>> F = {S1,S2,S3,S4,S5};
 
 	//------Ejemplo 2--------- SOL = {S2,S3,S5}
-	// // Conjuntos
+	// Conjuntos
 	// vector<int> S1 = {1,2,3,4,5,6};
 	// vector<int> S2 = {1,4,7,10};
 	// vector<int> S3 = {2,5,7,8,11};
@@ -95,7 +99,7 @@ int main(int argc, char **argv){
 	//Universo
 	vector<int> X = unionConjuntos(F);
 	sort(X.begin(), X.end());
-	cout << "Universo: " << endl;
+	cout << "Universo: ";
 	imprimirConjunto(X);
 
 	vector<bool> sol;
@@ -104,10 +108,10 @@ int main(int argc, char **argv){
 	}
 
 	// //SC
-	vector<vector<int>> C = busquedaExhaustiva(X, F); // Solución 1
-	// // vector<vector<int>> C = beOptimizada(X, F); // Solución 2
+	// vector<vector<int>> C = busquedaExhaustiva(X, F); // Solución 1
+	vector<vector<int>> C = beOptimizada(X, F); // Solución 2
 	// vector<vector<int>> C = greedyMSCP(X,F); // Solución 3
-	// // vector<vector<int>> C = greedyOptimizado(X, F, 1); // Solución 4
+	// vector<vector<int>> C = greedyOptimizado(X, F, 1); // Solución 4
 
 
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
@@ -117,6 +121,21 @@ int main(int argc, char **argv){
 
 
 	return EXIT_SUCCESS;
+}
+
+vector<int> split (string s, string delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    string token;
+    vector<int> res;
+
+    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
+        token = s.substr (pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back (stoi(token));
+    }
+
+    res.push_back (stoi( s.substr(pos_start) ));
+    return res;
 }
 
 /* --------------- Solución 1 -------------- */
@@ -186,6 +205,7 @@ vector<vector<int>> conjuntosUtilizados(vector<int> Faceptados, vector<vector<in
 
 /* --------------- Solución 2 -------------- */
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F) {
+	cout << "Buscando conjuntos con elemento único..." << endl;
 	vector<vector<int>> C = conjuntosConElementoUnico(X,F);
 	vector<vector<int>> CFaltante;
 	vector<int> numEncontrados;
@@ -394,6 +414,10 @@ vector<int> interseccionConjuntos(vector<int> A, vector<int> B) {
 }
 
 void imprimirConjunto(vector<int> v) {
+	if(v.empty()) {
+		cout << "{}" << endl;
+		return;
+	}
 	int i;
 	cout << "{";
 	for(i=0; i<v.size()-1; i++) {
