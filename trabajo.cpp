@@ -41,36 +41,27 @@ int main(int argc, char **argv){
 	vector<vector<int>> F;
 	int k;
 
-    // if(archivo.fail()){
-    //     cout << "Error" << endl;
-    //     exit(1);
-    // }
-    // while (getline(archivo, linea)) {
-	// 	stringstream text_stream(linea);
-	// 	string item;
-	// 	while (getline(text_stream, item, ' ')) {
-	// 		if(!item.empty()) numeros.push_back(stoi(item));
-	// 	}
-	// 	// cout << numeros.size() << endl;
-	// 	// imprimirConjunto(numeros);
-	// 	F.push_back(numeros);
-	// 	numeros.clear();
-    // }
-    // archivo.close();
-
-	vector<int> S1 = {1,2,3,4,5,6};
-	vector<int> S2 = {5,6,8,9};
-	vector<int> S3 = {10,11,12};
-	vector<int> S4 = {1,4,7,10};
-	vector<int> S5 = {2,5,8,11};
-	vector<int> S6 = {3,6,9,12};
-
-	F = {S1,S2,S3,S4,S5,S6};
-
+    if(archivo.fail()){
+        cout << "Error" << endl;
+        exit(1);
+    }
+    while (getline(archivo, linea)) {
+		stringstream text_stream(linea);
+		string item;
+		while (getline(text_stream, item, ' ')) {
+			if(!item.empty()) numeros.push_back(stoi(item));
+		}
+		// cout << numeros.size() << endl;
+		// imprimirConjunto(numeros);
+		F.push_back(numeros);
+		numeros.clear();
+    }
+    archivo.close();
 
 	//Universo
 	vector<int> X = unionConjuntos(F);
 	sort(X.begin(), X.end());
+	cout << "Tamaño del universo: " << X.size() << endl;
 	// cout << "Universo: ";
 	// imprimirConjunto(X);
 
@@ -109,9 +100,9 @@ int main(int argc, char **argv){
 	}
 
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
-	for(vector<int> S : C) {
-		imprimirConjunto(S);
-	}
+	// for(vector<int> S : C) {
+	// 	imprimirConjunto(S);
+	// }
 
 	return EXIT_SUCCESS;
 }
@@ -253,43 +244,36 @@ vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k
 	vector<int> numEncontrados;
 
 	//Números encontrados
-	cout << "Números encontrados: ";
+	// cout << "Números encontrados: ";
 	numEncontrados = unionConjuntos(C);
-	imprimirConjunto(numEncontrados);
+	// imprimirConjunto(numEncontrados);
 
 	//Nuevo universo
-	cout << "Números Faltantes (Nuevo X): ";
+	// cout << "Números Faltantes (Nuevo X): ";
 	X = diferenciaConjuntos(X,numEncontrados);
-	imprimirConjunto(X);
+	// imprimirConjunto(X);
 
-	cout << "F restante: " << endl;
-	for(vector<int> S : F)
-		imprimirConjunto(S);
+	// cout << "F restante: " << endl;
+	// for(vector<int> S : F)
+	// 	imprimirConjunto(S);
 
-	//Greedy con k-conjuntos
+	// Greedy con k-conjuntos
 
 	if(!X.empty()) {
 		vector<int> U = X;
 		vector<vector<int>> maxS;
 		int interseccionMax;
 		int interseccion;
-		
-		vector<int> kconjuntos;
-		vector<vector<int>> cUtilizados;
-		for(int i=0; i<F.size(); i++) {
-			kconjuntos.push_back(0);
-		}
-		int c = 0;
+		int c;
+
+		vector<vector<int>> cUtilizados(k);
 		
 		while(!U.empty()) {
-			interseccionMax = 0;
+			for(int c=0; c<k; c++){
+				interseccionMax = 0;
 
-			while(c != F.size()) {
-				kconjuntos = sumarUno(kconjuntos);
-				c = contarUnos(kconjuntos);
-
-				if(c == k) {
-					cUtilizados = conjuntosUtilizados(kconjuntos, F);
+				for(vector<int> S : F) {
+					cUtilizados[c] = S;
 					interseccion = interseccionConjuntos(U,unionConjuntos(cUtilizados)).size();
 
 					if(interseccion > interseccionMax) {
@@ -297,8 +281,11 @@ vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k
 						maxS = cUtilizados;
 					}
 				}
+
+				cUtilizados = maxS;
 			}
 
+			// cout << U.size() << endl;
 			// imprimirConjunto(unionConjuntos(maxS));
 			U = diferenciaConjuntos(U,unionConjuntos(maxS));
 
@@ -307,6 +294,9 @@ vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k
 			}
 
 			maxS.clear();
+
+			if(U.size() < k) k = U.size();
+			cUtilizados.resize(k);
 		}
 	}
 
