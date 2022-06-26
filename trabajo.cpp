@@ -49,12 +49,13 @@ int main(int argc, char **argv){
 		stringstream text_stream(linea);
 		string item;
 		while (getline(text_stream, item, ' ')) {
-			if(!item.empty()) numeros.push_back(stoi(item));
+			if(!item.empty() && find(numeros.begin(), numeros.end(), stoi(item)) == numeros.end()) numeros.push_back(stoi(item));
 		}
 		// cout << numeros.size() << endl;
 		// imprimirConjunto(numeros);
 		F.push_back(numeros);
 		numeros.clear();
+		
     }
     archivo.close();
 
@@ -124,7 +125,7 @@ vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F) {
 		Faceptados = sumarUno(Faceptados);
 		c = contarUnos(Faceptados);
 		cUtilizados = conjuntosUtilizados(Faceptados, F);
-		if(Faceptados.size() < csol && interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n) {
+		if(c < csol && interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n) {
 			sol = cUtilizados;
 			csol = c;
 		}
@@ -174,35 +175,41 @@ vector<vector<int>> conjuntosUtilizados(vector<int> Faceptados, vector<vector<in
 
 /* --------------- Solución 2 -------------- */
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F) {
-	cout << "Buscando conjuntos con elemento único..." << endl;
 	vector<vector<int>> C = conjuntosConElementoUnico(F);
-	vector<vector<int>> CFaltante;
-	vector<int> numEncontrados;
 
-	//Números encontrados
-	cout << "Números encontrados: ";
-	numEncontrados = unionConjuntos(C);
-	imprimirConjunto(numEncontrados);
+    //Nuevo universo
+    X = diferenciaConjuntos(X,unionConjuntos(C));
 
-	//Nuevo universo
-	cout << "Números Faltantes (Nuevo X): ";
-	X = diferenciaConjuntos(X,numEncontrados);
-	imprimirConjunto(X);
+    if(!X.empty()) {
+        int c = 0;
+        int n = X.size();
+        int csol = F.size() + 99;
+        vector<int> Faceptados;
+        //Inicializar en 0
+        for(int i=0; i<F.size(); i++) {
+            Faceptados.push_back(0);
+        }
+        vector<vector<int>> sol, cUtilizados;
 
-	cout << "F restante: " << endl;
-	for(vector<int> S : F)
-		imprimirConjunto(S);
+        while(c<F.size()) {
+            Faceptados = sumarUno(Faceptados);
+            c = contarUnos(Faceptados);
+            if(c < csol) {
+                cUtilizados = conjuntosUtilizados(Faceptados, F);
+                if(interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n) {
+                    sol = cUtilizados;
+                    csol = c;
+                }
+            }
+        }
 
-	if(!X.empty()) {
-		cout << "Se realizará busqueda exhaustiva..." << endl;
-		CFaltante = busquedaExhaustiva(X, F);
-		for(vector<int> s : CFaltante) {
-			// imprimirConjunto(s);
-			C.push_back(s);
-		}
-	}
+        for(vector<int> s : sol) {
+            C.push_back(s);
+        }
+    }
 
-	return C;
+    return C;
+
 }
 
 /* --------------- Solución 3 -------------- */
