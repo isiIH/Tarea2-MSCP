@@ -19,6 +19,7 @@ vector<vector<int>> conjuntosConElementoUnico(vector<vector<int>> &F);
 vector<int> unionConjuntos(vector<vector<int>> F);
 vector<int> diferenciaConjuntos(vector<int> A, vector<int> B);
 vector<int> interseccionConjuntos(vector<int> A, vector<int> B);
+vector<vector<int>> randomNumeros(int a, int b );
 
 void imprimirConjunto(vector<int> v);
 
@@ -26,13 +27,14 @@ void imprimirConjunto(vector<int> v);
 
 int main(int argc, char **argv){
     
-    if(argc != 3){
+    if(argc != 4){
 		cout << "Error. Debe ejecutarse como ./trabajo solucion archivo" << endl;
 		exit(EXIT_FAILURE);
 	}
 
 	int solucion = stoi(argv[1]);
 	string file = argv[2];
+	int experimentacion = stoi(argv[3]);
 	clock_t start, end;
 	ifstream archivo;
     archivo.open("data/" + file, ios::in);
@@ -49,13 +51,12 @@ int main(int argc, char **argv){
 		stringstream text_stream(linea);
 		string item;
 		while (getline(text_stream, item, ' ')) {
-			if(!item.empty() && find(numeros.begin(), numeros.end(), stoi(item)) == numeros.end()) numeros.push_back(stoi(item));
+			if(!item.empty()) numeros.push_back(stoi(item));
 		}
 		// cout << numeros.size() << endl;
 		// imprimirConjunto(numeros);
 		F.push_back(numeros);
 		numeros.clear();
-		
     }
     archivo.close();
 
@@ -68,37 +69,94 @@ int main(int argc, char **argv){
 
 	//SC
 	vector<vector<int>> C;
-	switch(solucion) {
-		case 1:
-			start = clock();
-			C = busquedaExhaustiva(X, F); // Solución 1
-			end = clock();
-			cout << "Tiempo de ejecución de la búsqueda exhaustiva: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
-			break;
-		case 2:
-			start = clock();
-			C = beOptimizada(X, F); // Solución 2
-			end = clock();
-			cout << "Tiempo de ejecución de la búsqueda exhaustiva optimizada: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
-			break;
-		case 3:
-			start = clock();
-			C = greedyMSCP(X,F); // Solución 3
-			end = clock();
-			cout << "Tiempo de ejecución del algoritmo greedy: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
-			break;
-		case 4:
-			cout << "Ingrese un número k para el algoritmo greedy con k-conjuntos: ";
-			cin >> k; 
-			start = clock();
-			C = greedyOptimizado(X, F, k); // Solución 4
-			end = clock();
-			cout << "Tiempo de ejecución del algoritmo greedy optimizado: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
-			break;
-		default:
-			cout << "Los números de solución pueden ser: 1,2,3,4. Ejecute nuevamente" << endl;
-			exit(EXIT_FAILURE);
+
+	////////////////////////////////////////////
+	vector<vector<int>> randomUiverso  =randomNumeros(12,400);
+
+	 for(vector<int> S : randomUiverso) {
+	 	imprimirConjunto(S);
+	 }
+
+
+	if(experimentacion == 1){ 
+		switch(solucion) {
+			case 1:
+				start = clock();
+				C = busquedaExhaustiva(X, F); // Solución 1
+				end = clock();
+				cout << "Tiempo de ejecución de la búsqueda exhaustiva: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+				break;
+			case 2:
+				start = clock();
+				C = beOptimizada(X, F); // Solución 2
+				end = clock();
+				cout << "Tiempo de ejecución de la búsqueda exhaustiva optimizada: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+				break;
+			case 3:
+				start = clock();
+				C = greedyMSCP(X,F); // Solución 3
+				end = clock();
+				cout << "Tiempo de ejecución del algoritmo greedy: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+				break;
+			case 4:
+				cout << "Ingrese un número k para el algoritmo greedy con k-conjuntos: ";
+				cin >> k; 
+				start = clock();
+				C = greedyOptimizado(X, F, k); // Solución 4
+				end = clock();
+				cout << "Tiempo de ejecución del algoritmo greedy optimizado: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+				break;
+			default:
+				cout << "Los números de solución pueden ser: 1,2,3,4. Ejecute nuevamente" << endl;
+				exit(EXIT_FAILURE);
+		}
+	}else{
+
+		vector<vector<int>> randomUiverso  =randomNumeros(12,400);
+
+		 for(vector<int> S : randomUiverso) {
+	 		imprimirConjunto(S);
+	 	}
+
+		vector<int> X = unionConjuntos(randomUiverso);
+		sort(X.begin(), X.end());
+
+
+
+		switch(solucion) {
+			case 1:
+				start = clock();
+				C = busquedaExhaustiva(X, randomUiverso); // Solución 1
+				end = clock();
+				cout << "Tiempo de ejecución de la búsqueda exhaustiva: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+				break;
+			case 2:
+				start = clock();
+				C = beOptimizada(X, randomUiverso); // Solución 2
+				end = clock();
+				cout << "Tiempo de ejecución de la búsqueda exhaustiva optimizada: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+				break;
+			case 3:
+				start = clock();
+				C = greedyMSCP(X,randomUiverso); // Solución 3
+				end = clock();
+				cout << "Tiempo de ejecución del algoritmo greedy: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+				break;
+			case 4:
+				cout << "Ingrese un número k para el algoritmo greedy con k-conjuntos: ";
+				cin >> k; 
+				start = clock();
+				C = greedyOptimizado(X, randomUiverso, k); // Solución 4
+				end = clock();
+				cout << "Tiempo de ejecución del algoritmo greedy optimizado: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+				break;
+			default:
+				cout << "Los números de solución pueden ser: 1,2,3,4. Ejecute nuevamente" << endl;
+				exit(EXIT_FAILURE);
+
+		}
 	}
+
 
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
 	// for(vector<int> S : C) {
@@ -125,7 +183,7 @@ vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F) {
 		Faceptados = sumarUno(Faceptados);
 		c = contarUnos(Faceptados);
 		cUtilizados = conjuntosUtilizados(Faceptados, F);
-		if(c < csol && interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n) {
+		if(Faceptados.size() < csol && interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n) {
 			sol = cUtilizados;
 			csol = c;
 		}
@@ -175,41 +233,35 @@ vector<vector<int>> conjuntosUtilizados(vector<int> Faceptados, vector<vector<in
 
 /* --------------- Solución 2 -------------- */
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F) {
+	cout << "Buscando conjuntos con elemento único..." << endl;
 	vector<vector<int>> C = conjuntosConElementoUnico(F);
+	vector<vector<int>> CFaltante;
+	vector<int> numEncontrados;
 
-    //Nuevo universo
-    X = diferenciaConjuntos(X,unionConjuntos(C));
+	//Números encontrados
+	cout << "Números encontrados: ";
+	numEncontrados = unionConjuntos(C);
+	imprimirConjunto(numEncontrados);
 
-    if(!X.empty()) {
-        int c = 0;
-        int n = X.size();
-        int csol = F.size() + 99;
-        vector<int> Faceptados;
-        //Inicializar en 0
-        for(int i=0; i<F.size(); i++) {
-            Faceptados.push_back(0);
-        }
-        vector<vector<int>> sol, cUtilizados;
+	//Nuevo universo
+	cout << "Números Faltantes (Nuevo X): ";
+	X = diferenciaConjuntos(X,numEncontrados);
+	imprimirConjunto(X);
 
-        while(c<F.size()) {
-            Faceptados = sumarUno(Faceptados);
-            c = contarUnos(Faceptados);
-            if(c < csol) {
-                cUtilizados = conjuntosUtilizados(Faceptados, F);
-                if(interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n) {
-                    sol = cUtilizados;
-                    csol = c;
-                }
-            }
-        }
+	cout << "F restante: " << endl;
+	for(vector<int> S : F)
+		imprimirConjunto(S);
 
-        for(vector<int> s : sol) {
-            C.push_back(s);
-        }
-    }
+	if(!X.empty()) {
+		cout << "Se realizará busqueda exhaustiva..." << endl;
+		CFaltante = busquedaExhaustiva(X, F);
+		for(vector<int> s : CFaltante) {
+			// imprimirConjunto(s);
+			C.push_back(s);
+		}
+	}
 
-    return C;
-
+	return C;
 }
 
 /* --------------- Solución 3 -------------- */
@@ -255,16 +307,9 @@ vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k
 	numEncontrados = unionConjuntos(C);
 	// imprimirConjunto(numEncontrados);
 
-	//Nuevo universo
-	// cout << "Números Faltantes (Nuevo X): ";
+
 	X = diferenciaConjuntos(X,numEncontrados);
-	// imprimirConjunto(X);
 
-	// cout << "F restante: " << endl;
-	// for(vector<int> S : F)
-	// 	imprimirConjunto(S);
-
-	// Greedy con k-conjuntos
 
 	if(!X.empty()) {
 		vector<int> U = X;
@@ -402,4 +447,30 @@ void imprimirConjunto(vector<int> v) {
 		cout << v[i] << ", ";
 	}
 	cout << v[v.size()-1] << "}" << endl;
+
+}
+
+
+vector<vector<int>> randomNumeros(int a, int b ){
+	int numero = 0; 
+	int tam= 0; 
+	vector<vector<int>> C;
+	vector<int> temp;
+	for(int i = 0; i<a; i++){
+		tam = rand()%10;
+		for(int j =0; j<tam; j++){
+			numero = rand()%10;
+			temp.push_back(numero);
+		}
+		C.push_back(temp);
+		temp =  {};
+		
+	}
+	return C;
+
+
+
+
+
+
 }
