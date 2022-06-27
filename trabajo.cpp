@@ -1,151 +1,269 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <set>
-
+#include <fstream>
+#include <sstream>
+#include <ctime>
+#include <random>
 using namespace std;
 
-using std::vector;
+vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F);
+vector<int> sumarUno(vector<int> lista);
+int contarUnos(vector<int> lista);
+vector<vector<int>> conjuntosUtilizados(vector<int> Faceptados, vector<vector<int>> F);
 
-vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F, vector<vector<int>> C);
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F);
-vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F);
-vector<vector<int>> conjuntosConElementoUnico(vector<int> &X, vector<vector<int>> &F);
+vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k);
 
+vector<vector<int>> conjuntosConElementoUnico(vector<vector<int>> &F);
 
+bool buscarElementoUnico(vector<vector<int>> F, int n);
 vector<int> unionConjuntos(vector<vector<int>> F);
+vector<int> union2Conjuntos(vector<int> A, vector<int> B);
 vector<int> diferenciaConjuntos(vector<int> A, vector<int> B);
 vector<int> interseccionConjuntos(vector<int> A, vector<int> B);
 
-vector<vector<int>> Eliminacion(vector<vector<int>> X, vector<int>Y);
-vector<vector<int>> insercion(vector<vector<int>> X, vector<int>Y);
-
-void imprimirConjunto(vector<int> &v);
-
-
+void imprimirConjunto(vector<int> v);
 
 /*--------------------------------------------------------------------------------*/
 
 int main(int argc, char **argv){
     
-    if(argc != 1){
-		cout << "Error. Debe ejecutarse como ./trabajo" << endl;
+    if(argc != 3){
+		cout << "Error. Debe ejecutarse como ./trabajo solucion archivo" << endl;
 		exit(EXIT_FAILURE);
 	}
 
-	//------Ejemplo 1---------
-	vector<int> S1 = {1,2,3};
-	vector<int> S2 = {5,6,4};
-	vector<int> S3 = {2,4,3,5};
-	vector<int> S4 = {3,5,7};
-	vector<int> S5 = {7,8};
-	
-	vector<vector<int>> F = {S1,S2,S3,S4,S5};
+	int exp;
+	cout << "Experimentacion a realizar:" << endl;
+	cout << "Normal uniforme aleatoria (0)" << endl;
+	cout << "Datos reales (1)" << endl;
+	cin >> exp;
 
-	//------Ejemplo 2---------
-	// Conjuntos
-	// vector<int> S1 = {1,2,3,4,5,6};
-	// vector<int> S2 = {1,4,7,10};
-	// vector<int> S3 = {2,5,7,8,11};
-	// vector<int> S4 = {10,11};
-	// vector<int> S5 = {3,6,9,12};
-	// vector<int> S6 = {5,6,8,9};
+	int solucion = stoi(argv[1]);
+	clock_t start, end;
+	vector<vector<int>> F;
+	int k;
 
-	// //Familia de conjuntos
-	// vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
+	if(exp == 0) {
+		int m = 100;
+		double media = 50.0;
+		double desviacion = 10.0;
+		double p = 0.05;
+		int cElementoUnico = m*p;
+		int limS = 10;
+		default_random_engine generator;
+		normal_distribution<double> distribution(media,desviacion);
 
-	//------Ejemplo 3---------
-	// vector<int> S1 = {1,2,3,4,5,6};
-	// vector<int> S2 = {5,6,8,9};
-	// vector<int> S3 = {10,11,12};
-	// vector<int> S4 = {1,4,7,10};
-	// vector<int> S5 = {2,5,8,11};
-	// vector<int> S6 = {3,6,9,12};
+		random_device generator1;
+		bernoulli_distribution distribucion1(p);
 
-	// vector<vector<int>> F = {S1,S2,S3,S4,S5,S6};
+
+		int limiteSubconjunto, num;
+		vector<int> temp;
+		srand(800);
+		for(int i=0; i<m; i++) {
+			limiteSubconjunto = rand()%limS + 1;
+			for(int j=0; j<limiteSubconjunto; j++) {
+				if(distribucion1(generator1)){
+
+					do{
+						
+						num =distribution(generator);
+					}while(buscarElementoUnico(F,num));				
+					temp.push_back(num);
+
+				}else{
+					num = distribution(generator);				
+					temp.push_back(num);
+				}
+
+				}
+				
+				
+			imprimirConjunto(temp);
+			F.push_back(temp);
+			temp =  {};
+		}
+		
+
+		cout << cElementoUnico << endl;
+	}
+	else {
+		string file = argv[2];
+		ifstream archivo;
+		archivo.open("data/" + file, ios::in);
+		string linea;
+		vector<int> numeros;
+
+		if(archivo.fail()){
+			cout << "Error" << endl;
+			exit(1);
+		}
+		while (getline(archivo, linea)) {
+			stringstream text_stream(linea);
+			string item;
+			while (getline(text_stream, item, ' ')) {
+				if(!item.empty() && find(numeros.begin(), numeros.end(), stoi(item)) == numeros.end()) numeros.push_back(stoi(item));
+			}
+			// cout << numeros.size() << endl;
+			// imprimirConjunto(numeros);
+			F.push_back(numeros);
+			numeros.clear();
+		}
+		archivo.close();
+	}
 
 	//Universo
 	vector<int> X = unionConjuntos(F);
 	sort(X.begin(), X.end());
+	cout << "Tamaño del universo (n): " << X.size() << endl;
+	cout << "Cantidad de subconjuntos (m): " << F.size() << endl;
 
 	//SC
-	 
-	// Solución 1
-	
-
-	vector<vector<int>> C = busquedaExhaustiva(X,F,C);
-
-
-
-	// vector<vector<int>> C = beOptimizada(X, F); // Solución 2
-	// vector<vector<int>> C = greedyMSCP(X,F); // Solución 3
-	//vector<vector<int>> C = greedyOptimizado(X, F); // Solución 4
-
-	
-
-	cout << "Número de subconjuntos en C: " << C.size() << endl;
-	for(vector<int> S : C) {
-		imprimirConjunto(S);
+	vector<vector<int>> C;
+	switch(solucion) {
+		case 1:
+			start = clock();
+			C = busquedaExhaustiva(X, F); // Solución 1
+			end = clock();
+			cout << "Tiempo de ejecución de la búsqueda exhaustiva: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+			break;
+		case 2:
+			start = clock();
+			C = beOptimizada(X, F); // Solución 2
+			end = clock();
+			cout << "Tiempo de ejecución de la búsqueda exhaustiva optimizada: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+			break;
+		case 3:
+			start = clock();
+			C = greedyMSCP(X,F); // Solución 3
+			end = clock();
+			cout << "Tiempo de ejecución del algoritmo greedy: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+			break;
+		case 4:
+			cout << "Ingrese un número k para el algoritmo greedy con k-conjuntos: ";
+			cin >> k; 
+			start = clock();
+			C = greedyOptimizado(X, F, k); // Solución 4
+			end = clock();
+			cout << "Tiempo de ejecución del algoritmo greedy optimizado: " << (double(end - start))/(CLOCKS_PER_SEC) << "s" << endl;
+			break;
+		default:
+			cout << "Los números de solución pueden ser: 1,2,3,4. Ejecute nuevamente" << endl;
+			exit(EXIT_FAILURE);
 	}
 
+	// for(vector<int> S : C) {
+	// 	imprimirConjunto(S);
+	// }
+	// if(unionConjuntos(C).size() == X.size()) cout << "\nC es un SC" << endl;
+	cout << "Número de subconjuntos en C: " << C.size() << endl;
 
+
+	
 	return EXIT_SUCCESS;
 }
 
 /* --------------- Solución 1 -------------- */
-vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F, vector<vector<int>> C) {
-	vector<vector<int>> temp0;
-	vector<int> K;
+vector<vector<int>> busquedaExhaustiva(vector<int> X, vector<vector<int>> F) {
+	int c = 0;
+	int n = X.size();
+	int csol = F.size() + 99;
+	vector<int> Faceptados;
+	//Inicializar en 0
+	for(int i=0; i<F.size(); i++) {
+		Faceptados.push_back(0);
+	}
+	vector<vector<int>> sol;
+	vector<vector<int>> cUtilizados;
 
-	vector<vector<int>> R;
-	vector<vector<int>> t;
-	int min = F.size();
-
-	if(X == K)
-		return C;
-	
-
-	for(vector<int> S : F){
-		C = insercion(C,S);
-		temp0 =  {S,K};
-		K = unionConjuntos(temp0);
-		F = Eliminacion(F,S);
-		t = busquedaExhaustiva(X,F,C);
-		if(t.size() <= min){
-			min = t.size();
-			R = t;
+	while(c<F.size()) {
+		Faceptados = sumarUno(Faceptados);
+		c = contarUnos(Faceptados);
+		cUtilizados = conjuntosUtilizados(Faceptados, F);
+		if(interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n && c < csol) {
+			sol = cUtilizados;
+			csol = c;
 		}
+	}
 
-	}	
+	return sol;
+}
 
-		
+vector<int> sumarUno(vector<int> lista) { //O(n)
+	int i = lista.size() - 1;
+
+	while(i >= 0 && lista[i] == 1) {
+		lista[i] = 0;
+		i -= 1;
+	}
+
+	if(i>=0) {
+		lista[i] = 1;
+	}
+
+	return lista;
+}
+
+int contarUnos(vector<int> lista) { //O(n)
+	int c = 0;
+
+	for(int i : lista) {
+		if(i == 1) {
+			c++;
+		}
+	}
 	
-	return R;
+	return c;
+}
 
+vector<vector<int>> conjuntosUtilizados(vector<int> Faceptados, vector<vector<int>> F) { //O(n)
+	vector<vector<int>> res;
+
+	for(int i=0; i<Faceptados.size(); i++) {
+		if(Faceptados[i] == 1) {
+			res.push_back(F[i]);
+		}
+	}
+
+	return res;
 }
 
 /* --------------- Solución 2 -------------- */
 vector<vector<int>> beOptimizada(vector<int> X, vector<vector<int>> F) {
-	vector<vector<int>> C = conjuntosConElementoUnico(X,F);
-	vector<int> numEncontrados;
-
-	//Números encontrados
-	cout << "Números encontrados: ";
-	numEncontrados = unionConjuntos(C);
-	imprimirConjunto(numEncontrados);
+	vector<vector<int>> C = conjuntosConElementoUnico(F);
 
 	//Nuevo universo
-	cout << "Números Faltantes (Nuevo X): ";
-	imprimirConjunto(X);
-
-	cout << "F restante: " << endl;
-	for(vector<int> S : F)
-		imprimirConjunto(S);
+	X = diferenciaConjuntos(X,unionConjuntos(C));
 
 	if(!X.empty()) {
-		//busquedaExhaustiva(X, F);
-		//Falta terminarlo
+		int c = 0;
+		int n = X.size();
+		int csol = F.size() + 99;
+		vector<int> Faceptados;
+		//Inicializar en 0
+		for(int i=0; i<F.size(); i++) {
+			Faceptados.push_back(0);
+		}
+		vector<vector<int>> sol, cUtilizados;
+
+		while(c<F.size()) {
+			Faceptados = sumarUno(Faceptados);
+			c = contarUnos(Faceptados);
+			if(c < csol) {
+				cUtilizados = conjuntosUtilizados(Faceptados, F);
+				if(interseccionConjuntos(unionConjuntos(cUtilizados),X).size() == n) {
+					sol = cUtilizados;
+					csol = c;
+				}
+			}
+		}
+
+		for(vector<int> s : sol) {
+			C.push_back(s);
+		}
 	}
 
 	return C;
@@ -156,29 +274,22 @@ vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F) {
 	vector<int> U = X;
 	vector<vector<int>> C = {};
 	vector<int> maxS;
-	int interseccionMax;
-	int interseccion;
+	int interseccionMax, interseccion;
 
 	while(!U.empty()) {
 		maxS = {};
 		interseccionMax = 0;
 		for(vector<int> S : F) {
 			interseccion = interseccionConjuntos(U,S).size();
-			// cout << "Interseccion: " << endl;
-			// imprimirConjunto(Sconjunto);
+
 			if(interseccion > interseccionMax) {
 				interseccionMax = interseccion;
 				maxS = S;
 			}
 		}
 
-		// cout << "maxS: " << endl;
-		// imprimirConjunto(maxS);
 		U = diferenciaConjuntos(U,maxS);
-		// cout << "U sin maxS: " << endl;
-		// imprimirConjunto(U);
 		C.push_back(maxS);
-
 	}
 
 	return C;
@@ -186,119 +297,131 @@ vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F) {
 }
 
 /* --------------- Solución 4 -------------- */
-vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F) {
-	vector<vector<int>> C = conjuntosConElementoUnico(X,F);
-	vector<int> numEncontrados;
-
-	//Números encontrados
-	cout << "Números encontrados: ";
-	numEncontrados = unionConjuntos(C);
-	imprimirConjunto(numEncontrados);
+vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k) {
+	vector<vector<int>> C = conjuntosConElementoUnico(F);
 
 	//Nuevo universo
-	cout << "Números Faltantes (Nuevo X): ";
-	imprimirConjunto(X);
+	X = diferenciaConjuntos(X,unionConjuntos(C));
 
-	cout << "F restante: " << endl;
-	for(vector<int> S : F)
-		imprimirConjunto(S);
+	// Greedy con k-conjuntos
+	sort(F.begin(), F.end(), [] (vector<int> &x, vector<int> &y) { return x.size() > y.size(); });
+	// for(vector<int> S : F) {
+	// 	imprimirConjunto(S);
+	// }
 
 	if(!X.empty()) {
-		//busquedaExhaustiva(X, F);
-		//Falta terminarlo
-	}
+		vector<int> U = X;
+		vector<vector<int>> maxS(k);
+		int interseccionMax;
+		int interseccion;
+		int i;
 
-	//Algoritmo del greedy normal, hay que cambiarlo para cualquier k
+		vector<int> cUnion;
 
-	vector<int> U = X;
-	vector<int> maxS;
-	int interseccionMax;
-	int interseccion;
+		while(!U.empty()) {
+			cUnion = {};
+			interseccionMax = 0;
 
-	while(!U.empty()) {
-		maxS = {};
-		interseccionMax = 0;
-		for(vector<int> S : F) {
-			interseccion = interseccionConjuntos(U,S).size();
-			// cout << "Interseccion: " << endl;
-			// imprimirConjunto(Sconjunto);
-			if(interseccion > interseccionMax) {
-				interseccionMax = interseccion;
-				maxS = S;
+			for(int c=0; c<k; c++){
+				i = 0;
+				while(i<F.size() && union2Conjuntos(cUnion,F[i]).size() >= interseccionMax) {
+					interseccion = interseccionConjuntos(U,union2Conjuntos(cUnion,F[i])).size();
+
+					if(interseccion > interseccionMax) {
+						interseccionMax = interseccion;
+						maxS[c] = F[i];
+					}
+
+					i++;
+				}
+
+				cUnion = union2Conjuntos(cUnion,maxS[c]);
+			}
+
+			U = diferenciaConjuntos(U,cUnion);
+
+			for(int c=0; c<k; c++) {
+				C.push_back(maxS[c]);
+				maxS[c] = {};
+			}
+			if(U.size() < k) {
+				k = U.size();
+				maxS.resize(k);
 			}
 		}
-
-		// cout << "maxS: " << endl;
-		// imprimirConjunto(maxS);
-		U = diferenciaConjuntos(U,maxS);
-		// cout << "U sin maxS: " << endl;
-		// imprimirConjunto(U);
-		C.push_back(maxS);
 	}
 
 	return C;
 }
 
+vector<vector<int>> conjuntosConElementoUnico(vector<vector<int>> &F) {
+	vector<int> unico;
+	vector<vector<int>> Fcopy = F;
+	vector<vector<int>> C;
 
+	for(vector<int> Sx : Fcopy) {
+		unico = Sx;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-vector<vector<int>> conjuntosConElementoUnico(vector<int> &X, vector<vector<int>> &F) {
-	vector<vector<int>> C = {};
-	vector<int> newX = X;
-	int contador;
-	vector<int> subconj;
-
-	for(int numX : X) {
-		if(find(newX.begin(), newX.end(), numX) != newX.end()) {
-			contador = 0;
-			subconj = {};
-
-			for(vector<int> S : F) { //Busca en cada subconjunto el número del universo X
-				if(find(S.begin(), S.end(), numX) != S.end()) {
-					contador += 1;
-					subconj = S;
-				}
-				
-			}
-
-			//Si solo un subconjunto contiene el número, entonces se almacena en el conjunto C
-			if(contador == 1) {
-				// imprimirConjunto(subconj);
-				C.push_back(subconj);
-				F.erase(find(F.begin(), F.end(), subconj));
-				newX = diferenciaConjuntos(newX, subconj);
-				// imprimirConjunto(newX);
+		for(vector<int> Sy : Fcopy) {
+			if(Sx != Sy) {
+				unico = diferenciaConjuntos(unico, Sy);
 			}
 		}
-	}
+		// cout << "----------" << endl;
+		// imprimirConjunto(Sx);
+		// imprimirConjunto(unico);
 
-	X = newX;
+		if(unico.size() == 1) {
+			C.push_back(Sx);
+			F.erase(find(F.begin(), F.end(), Sx));
+		}
+	}
 
 	return C;
 }
 
 /* --------------- Operaciones de conjuntos -------------- */
 vector<int> unionConjuntos(vector<vector<int>> F) {
-	vector<int> X = {};
-	if(F.empty()) return X;
-	X = F[0];
+	vector<int> v = {};
+	if(F.empty()) return v;
+	int j;
 
-	for(vector<int> S : F) {
-		for(int numS : S) {
+	for(vector<int> S : F) { //m
+		for(int numS : S) { //l <= n
 			bool encontrado = false;
 
-			for(int numX : X) {
-				if(numX == numS) encontrado = true;
+			j = 0;
+			while(j<v.size() && !encontrado) {
+				if(numS == v[j]) encontrado = true;
+				j++;
 			}
 
-			if(!encontrado) X.push_back(numS);
+			if(!encontrado) v.push_back(numS);
 		}
 	}
 
-	return X;
+	return v;
 }
-/////////////////////////////////////////////////////////////////////////////
+
+vector<int> union2Conjuntos(vector<int> A, vector<int> B) {
+	vector<int> v = A;
+	int j;
+
+	for(int b : B) {
+		bool encontrado = false;
+
+		j = 0;
+		while(j<v.size() && !encontrado) {
+			if(b == v[j]) encontrado = true;
+			j++;
+		}
+
+		if(!encontrado) v.push_back(b);
+	}
+
+	return v;
+}
+
 vector<int> diferenciaConjuntos(vector<int> A, vector<int> B) {
 	vector<int> C = {};
 
@@ -318,7 +441,7 @@ vector<int> diferenciaConjuntos(vector<int> A, vector<int> B) {
 
 	return C;
 }
-/////////////////////////////////////////////////////////////////////////
+
 vector<int> interseccionConjuntos(vector<int> A, vector<int> B) {
 	vector<int> C = {};
 
@@ -330,42 +453,41 @@ vector<int> interseccionConjuntos(vector<int> A, vector<int> B) {
 
 	return C;
 }
-/////////////////////////////////////////////////////////////////////////
-void imprimirConjunto(vector<int> &v) {
+
+void imprimirConjunto(vector<int> v) {
+	if(v.empty()) {
+		cout << "{}" << endl;
+		return;
+	}
+	int i;
 	cout << "{";
-	for(int num : v) {
-		if(num == v[v.size()-1]) cout << num;
-		else cout << num << ", ";
+	for(i=0; i<v.size()-1; i++) {
+		cout << v[i] << ", ";
 	}
-	cout << "}" << endl;
+	cout << v[v.size()-1] << "}" << endl;
 }
 
 
-vector<vector<int>> Eliminacion(vector<vector<int>> X, vector<int>Y){
 
+bool buscarElementoUnico(vector<vector<int>> F, int n){
 
-	vector<vector<int>> Temp;
-	for(vector<int> S : X){
+	if(F.empty())
+		return false;
 
-		//Temp.push_back(S);
-		if(S != Y)
-			Temp.push_back(S);
+	for(vector<int> s : F){
+		for(int i = 0; i<s.size(); i++){ 
+			if (s[i]==n){
+				return true;
+				break;
+			}	
+		}
 	}
-	
-	return Temp;
-	
-}
+	return false;
 
-vector<vector<int>> insercion(vector<vector<int>> X, vector<int>Y){
 
-	vector<vector<int>> Temp;
-	for(vector<int> S : X){
-		Temp.push_back(S);
-	}
-	Temp.push_back(Y);
 
-	return Temp;
 
 
 
 }
+
