@@ -17,12 +17,11 @@ vector<vector<int>> greedyMSCP(vector<int> X, vector<vector<int>> F);
 vector<vector<int>> greedyOptimizado(vector<int> X, vector<vector<int>> F, int k);
 
 vector<vector<int>> conjuntosConElementoUnico(vector<vector<int>> &F);
-
-bool buscarElementoUnico(vector<vector<int>> F, int n);
 vector<int> unionConjuntos(vector<vector<int>> F);
 vector<int> union2Conjuntos(vector<int> A, vector<int> B);
 vector<int> diferenciaConjuntos(vector<int> A, vector<int> B);
 vector<int> interseccionConjuntos(vector<int> A, vector<int> B);
+bool buscarElementoUnico(vector<vector<int>> F, int n);
 
 void imprimirConjunto(vector<int> v);
 
@@ -36,9 +35,9 @@ int main(int argc, char **argv){
 	}
 
 	int exp;
-	cout << "Experimentacion a realizar:" << endl;
 	cout << "Normal uniforme aleatoria (0)" << endl;
 	cout << "Datos reales (1)" << endl;
+	cout << "Experimentacion a realizar: ";
 	cin >> exp;
 
 	int solucion = stoi(argv[1]);
@@ -47,48 +46,48 @@ int main(int argc, char **argv){
 	int k;
 
 	if(exp == 0) {
-		int m = 100;
+		int m = 10;
 		double media = 50.0;
-		double desviacion = 10.0;
-		double p = 0.05;
+		double desviacion = 6.0;
+		double p = 0.5;
 		int cElementoUnico = m*p;
+		cout << "cElementoUnico: " << cElementoUnico << endl;
+		vector<int> numUnicos;
 		int limS = 10;
 		default_random_engine generator;
 		normal_distribution<double> distribution(media,desviacion);
-
 		random_device generator1;
 		bernoulli_distribution distribucion1(p);
 
-
 		int limiteSubconjunto, num;
 		vector<int> temp;
-		srand(800);
+
 		for(int i=0; i<m; i++) {
 			limiteSubconjunto = rand()%limS + 1;
 			for(int j=0; j<limiteSubconjunto; j++) {
 				if(distribucion1(generator1)){
-
 					do{
-						
 						num =distribution(generator);
 					}while(buscarElementoUnico(F,num));				
 					temp.push_back(num);
 
+				
 				}else{
-					num = distribution(generator);				
+					num = distribution(generator);
 					temp.push_back(num);
-				}
-
-				}
-				
-				
-			imprimirConjunto(temp);
+				}				
+			}
+			// imprimirConjunto(temp);
 			F.push_back(temp);
 			temp =  {};
 		}
-		
 
-		cout << cElementoUnico << endl;
+		vector<vector<int>> c = conjuntosConElementoUnico(F);
+		cout << "--------------" << endl;
+		for(vector<int> S : c) {
+			imprimirConjunto(S);
+		}
+		cout << "Cantidad de conjuntos con elementos unicos: " << c.size() << endl;
 	}
 	else {
 		string file = argv[2];
@@ -359,21 +358,18 @@ vector<vector<int>> conjuntosConElementoUnico(vector<vector<int>> &F) {
 	vector<vector<int>> Fcopy = F;
 	vector<vector<int>> C;
 
-	for(vector<int> Sx : Fcopy) {
-		unico = Sx;
+	for(int i=0; i<Fcopy.size(); i++) {
+		unico = Fcopy[i];
 
-		for(vector<int> Sy : Fcopy) {
-			if(Sx != Sy) {
-				unico = diferenciaConjuntos(unico, Sy);
+		for(int j=0; j<Fcopy.size(); j++) {
+			if(i != j) {
+				unico = diferenciaConjuntos(unico, Fcopy[j]);
 			}
 		}
-		// cout << "----------" << endl;
-		// imprimirConjunto(Sx);
-		// imprimirConjunto(unico);
 
-		if(unico.size() == 1) {
-			C.push_back(Sx);
-			F.erase(find(F.begin(), F.end(), Sx));
+		if(unico.size() != 0) {
+			C.push_back(Fcopy[i]);
+			F.erase(find(F.begin(), F.end(), Fcopy[i]));
 		}
 	}
 
@@ -469,11 +465,10 @@ void imprimirConjunto(vector<int> v) {
 
 
 
-bool buscarElementoUnico(vector<vector<int>> F, int n){
 
+bool buscarElementoUnico(vector<vector<int>> F, int n){
 	if(F.empty())
 		return false;
-
 	for(vector<int> s : F){
 		for(int i = 0; i<s.size(); i++){ 
 			if (s[i]==n){
@@ -483,11 +478,6 @@ bool buscarElementoUnico(vector<vector<int>> F, int n){
 		}
 	}
 	return false;
-
-
-
-
-
 
 }
 
