@@ -4,15 +4,19 @@ Primero se debe ejecutar make en la terminal como se muestra a continuación
 ```
 make
 ```
-Luego se ejecutará de la siguiente forma ./trabajo solucion archivo, como en el siguiente ejemplo:
+Luego se ejecutará de la siguiente forma ./trabajo solucion experimentacion archivo, como en el siguiente ejemplo:
 ```
-./trabajo 1 ejemplo2.txt
+./trabajo 3 1 ejemplo2.txt
 ```
 Donde solucion puede tomar 4 valores correspondiente a las siguientes soluciones:
 * Busqueda exhaustiva - 1
 * Busqueda exhaustiva optimizada - 2
 * Greedy - 3
 * Greedy optimizado - 4
+
+Para la experimentación seleccione una de las siguientes opciones:
+* Normal uniforme aleatoria - 0
+* Datos reales - 1
 
 Y para archivo existen 3 .txt en la carpeta data:
 * ejemplo1.txt

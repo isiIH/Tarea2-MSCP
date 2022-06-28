@@ -28,56 +28,61 @@ void imprimirConjunto(vector<int> v);
 
 int main(int argc, char **argv){
     
-    if(argc != 3){
-		cout << "Error. Debe ejecutarse como ./trabajo solucion archivo" << endl;
+    if(argc != 4){
+		cout << "Error. Debe ejecutarse como ./trabajo solucion experimentacion archivo" << endl;
 		exit(EXIT_FAILURE);
 	}
 
-	int exp;
-	cout << "Normal uniforme aleatoria (0)" << endl;
-	cout << "Datos reales (1)" << endl;
-	cout << "Experimentacion a realizar: ";
-	cin >> exp;
-
-	int solucion = stoi(argv[1]);
+	int solucion = atoi(argv[1]);
+	int exp = atoi(argv[2]);
 	clock_t start, end;
 	vector<vector<int>> F;
 	int k;
 
 	if(exp == 0) {
-		int m = 10;
-		double media = 50.0;
-		double desviacion = 6.0;
-		double p = 0.1;
+		int m = rand()%100+1000;
+		double media = 500.0;
+		double desviacion = 20.0;
+		double p = 0.05;
 		int cElementoUnico = m*p;
-		cout << "cElementoUnico: " << cElementoUnico << endl;
-		vector<int> numUnicos;
-		int limS = 10;
+		int limS = 30;
 		default_random_engine generator;
 		normal_distribution<double> distribution(media,desviacion);
 		int limiteSubconjunto, num;
 		vector<int> temp;
+		int posRandom;
 
+		//Elementos únicos
+		vector<int> unicos;
+		for(int i=0; i<cElementoUnico; i++) {
+			num = distribution(generator);
+			while(find(unicos.begin(), unicos.end(), num) != unicos.end()) {
+				num = distribution(generator);
+			}
+			unicos.push_back(num);
+		}
+
+		//Crear subconjuntos random
 		for(int i=0; i<m; i++) {
 			limiteSubconjunto = rand()%limS + 1;
 			for(int j=0; j<limiteSubconjunto; j++) {
 				num = distribution(generator);
+				while(find(unicos.begin(), unicos.end(), num) != unicos.end() || find(temp.begin(), temp.end(), num) != temp.end()) {
+					num = distribution(generator);
+				}
 				temp.push_back(num);
 			}
-			// imprimirConjunto(temp);
+			if(cElementoUnico > 0) {
+				cElementoUnico--;
+				posRandom = rand()%temp.size();
+				temp[posRandom] = unicos[cElementoUnico];
+			}
 			F.push_back(temp);
 			temp =  {};
 		}
-
-		// vector<vector<int>> c = conjuntosConElementoUnico(F);
-		// cout << "--------------" << endl;
-		// for(vector<int> S : c) {
-		// 	imprimirConjunto(S);
-		// }
-		// cout << "Cantidad de conjuntos con elementos unicos: " << c.size() << endl;
 	}
 	else {
-		string file = argv[2];
+		string file = argv[3];
 		ifstream archivo;
 		archivo.open("data/" + file, ios::in);
 		string linea;
@@ -106,6 +111,10 @@ int main(int argc, char **argv){
 	sort(X.begin(), X.end());
 	cout << "Tamaño del universo (n): " << X.size() << endl;
 	cout << "Cantidad de subconjuntos (m): " << F.size() << endl;
+
+	// for(vector<int> S : F) {
+	// 	imprimirConjunto(S);
+	// }
 
 	//SC
 	vector<vector<int>> C;
@@ -141,14 +150,12 @@ int main(int argc, char **argv){
 			exit(EXIT_FAILURE);
 	}
 
-	// for(vector<int> S : C) {
-	// 	imprimirConjunto(S);
-	// }
-	// if(unionConjuntos(C).size() == X.size()) cout << "\nC es un SC" << endl;
+	cout << "Solución C:" << endl;
+	for(vector<int> S : C) {
+		imprimirConjunto(S);
+	}
 	cout << "Número de subconjuntos en C: " << C.size() << endl;
 
-
-	
 	return EXIT_SUCCESS;
 }
 
